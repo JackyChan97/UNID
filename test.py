@@ -255,7 +255,7 @@ class get_test_config():
         # Parse from command line
         self.parser = argparse.ArgumentParser(description='Learning Deep Non-Blind Deconvolution Without Ground Truth Images')
         self.parser.add_argument('--gpu_idx', type=int, default=0, help='idx of gpu')
-
+        self.parser.add_argument('--layers', type=int, default=4, help='net layers')
         self.parser.add_argument('--save_img', default=False, help='save images into file')
         self.parser.add_argument('--ct',default=False)
         self.parser.parse_args(namespace=self)
@@ -273,14 +273,9 @@ class get_test_config():
 
         for dset in self.dataset_name:
             self.test_sp_dir[dset] = './data/{}/sharp/'.format(dset)
-            if self.test_possion:
-                for peak in self.test_peak:
-                    self.test_bl_dir[dset + '_' + str(peak)] = './data/' + dset + '/peak_' + str(
-                        peak) + '_ker_levin_taper/BlurryNoiseDset/'
-            else:
-                for sigma in self.test_sigma:
-                    self.test_bl_dir[dset + '_' + str(sigma)] = './data/' + dset + '/sigma_' + str(
-                        sigma) + '_ker_levin_circular/BlurryNoiseDset/'
+            for sigma in self.test_sigma:
+                self.test_bl_dir[dset + '_' + str(sigma)] = './data/' + dset + '/sigma_' + str(
+                    sigma) + '_ker_levin_circular/BlurryNoiseDset/'
 
         self.test_save_dir = './deblur_thesis/circular_noFDN/'
 
@@ -294,18 +289,11 @@ if __name__ == "__main__":
 
     result = {}
     test_dset = {}
-    if args.test_possion:
-        for dset in args.dataset_name:
-            for peak in args.test_peak:
-                test_dset[dset + '_' + str(peak)] = Test_Dataset_possion(args.test_sp_dir[dset],
-                                                                         args.test_bl_dir[dset + '_' + str(peak)],
-                                                                         args.ker_dir)
-    else:
-        for dset in args.dataset_name:
-            for sigma in args.test_sigma:
-                test_dset[dset + '_' + str(sigma)] = Test_Dataset(args.test_sp_dir[dset],
-                                                                  args.test_bl_dir[dset + '_' + str(sigma)],
-                                                                  args.ker_dir)
+    for dset in args.dataset_name:
+        for sigma in args.test_sigma:
+            test_dset[dset + '_' + str(sigma)] = Test_Dataset(args.test_sp_dir[dset],
+                                                              args.test_bl_dir[dset + '_' + str(sigma)],
+                                                              args.ker_dir)
 
     test = Tester(args, net, test_dset)
     test()
